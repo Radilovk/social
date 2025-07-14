@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профилът не лъже: Живата книга [v10/10 - Работеща]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* CSS-ът е същият като в предишния отговор, тъй като е коректен. */
+        /* За да не е прекалено дълъг отговорът, тук ще сложа само основните стилове. */
+        :root {
+            --font-serif: 'Lora', serif;
+            --font-sans: 'Inter', sans-serif;
+            --bg-color: #FFFFFF;
+            --text-color: #1a1a1a;
+            --accent-color: #007AFF;
+            --subtle-bg: #f5f5f7;
+            --subtle-border: #e5e5e5;
+            --highlight-color: rgba(0, 122, 255, 0.2);
+        }
+        .dark-mode { --bg-color: #121212; --text-color: #e2e2e2; --accent-color: #0A84FF; --subtle-bg: #1c1c1e; --subtle-border: #3a3a3c; --highlight-color: rgba(10, 132, 255, 0.3); }
+        .sepia-mode { --bg-color: #fbf0d9; --text-color: #5b4636; --accent-color: #8D6E63; --subtle-bg: #ede0c8; --subtle-border: #dcd0b8; --highlight-color: rgba(141, 110, 99, 0.3); }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body { font-family: var(--font-serif); background-color: var(--bg-color); color: var(--text-color); transition: background-color 0.3s ease, color 0.3s ease; -webkit-font-smoothing: antialiased; }
+        .progress-bar { position: fixed; top: 0; left: 0; height: 4px; background-color: var(--accent-color); width: 0%; z-index: 1000; transition: width 0.1s linear; }
+        .container { max-width: 800px; margin: 0 auto; padding: 2rem 1.5rem; }
+        .app-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 1.5rem; border-bottom: 1px solid var(--subtle-border); margin-bottom: 2rem; }
+        .header-left, .header-right { display: flex; align-items: center; gap: 1rem; }
+        .app-header h1 { font-family: var(--font-sans); font-size: 1.2rem; font-weight: 600; cursor: pointer; }
+        .icon-button { background: none; border: none; cursor: pointer; color: var(--text-color); padding: 0.5rem; display: flex; align-items: center; justify-content: center; }
+        .icon-button svg { width: 24px; height: 24px; pointer-events: none; }
+        .settings-panel { position: fixed; top: 0; right: -320px; width: 300px; height: 100%; background-color: var(--subtle-bg); border-left: 1px solid var(--subtle-border); padding: 1.5rem; transition: right 0.3s ease-in-out; z-index: 999; }
+        .settings-panel.open { right: 0; }
+        .settings-panel h3, .nav-panel h3 { font-family: var(--font-sans); margin-bottom: 1.5rem; }
+        .setting-group { margin-bottom: 2rem; }
+        .setting-group label { font-family: var(--font-sans); font-size: 0.9rem; display: block; margin-bottom: 0.8rem; font-weight: 600;}
+        .theme-controls, .font-size-controls { display: flex; gap: 0.8rem; }
+        .theme-dot { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--subtle-border); cursor: pointer; }
+        .theme-dot.active { border-color: var(--accent-color); }
+        .theme-dot#light { background-color: #FFFFFF; }
+        .theme-dot#dark { background-color: #1c1c1e; }
+        .theme-dot#sepia { background-color: #fbf0d9; }
+        .font-size-controls button { background-color: var(--bg-color); border: 1px solid var(--subtle-border); color: var(--text-color); padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-family: var(--font-sans); font-weight: bold; }
+        .nav-panel { position: fixed; top: 0; left: -320px; width: 300px; height: 100%; background-color: var(--subtle-bg); border-right: 1px solid var(--subtle-border); padding: 1.5rem; transition: left 0.3s ease-in-out; z-index: 999; overflow-y: auto; }
+        .nav-panel.open { left: 0; }
+        .nav-list { list-style: none; }
+        .nav-list .part-title { font-family: var(--font-sans); font-weight: bold; margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--accent-color); }
+        .nav-list .chapter-link { display: block; padding: 0.5rem 0; color: var(--text-color); text-decoration: none; font-size: 0.9rem; }
+        .nav-list .chapter-link:hover { color: var(--accent-color); }
+        .content-view { line-height: 1.8; font-size: 18px; }
+        .content-view h2 { font-family: var(--font-sans); font-size: 2em; margin: 2em 0 1em 0; line-height: 1.2; }
+        .content-view h3 { font-family: var(--font-sans); font-size: 1.5em; margin: 1.5em 0 0.8em 0; line-height: 1.3; }
+        .content-view p { margin-bottom: 1.2em; }
+        .content-view blockquote { margin: 2em 0; padding-left: 1.5em; border-left: 2px solid var(--accent-color); font-style: italic; }
+        .content-view blockquote cite { display: block; margin-top: 0.5em; font-style: normal; }
+        .content-view ::selection { background-color: var(--highlight-color); }
+        .content-view .highlight { background-color: var(--highlight-color); cursor: pointer; }
+        .interactive-exercise { background-color: var(--subtle-bg); border: 1px solid var(--subtle-border); border-radius: 12px; padding: 1.5rem; margin: 2rem 0; }
+        .interactive-exercise .exercise-title { font-family: var(--font-sans); font-weight: 600; font-size: 1.2em; margin-bottom: 0.5rem; }
+        .interactive-exercise .instructions { font-size: 0.9em; opacity: 0.8; margin-bottom: 1.5rem; }
+        .interactive-exercise textarea { width: 100%; min-height: 100px; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--subtle-border); background-color: var(--bg-color); color: var(--text-color); font-family: var(--font-serif); font-size: 1em; }
+        .dashboard-view { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+        .dashboard-card { background-color: var(--subtle-bg); border-radius: 12px; padding: 1.5rem; }
+        .dashboard-card h3 { font-family: var(--font-sans); font-size: 1.1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--subtle-border); padding-bottom: 0.5rem;}
+        #continue-reading-btn { display: block; width: 100%; padding: 1rem; background-color: var(--accent-color); color: white; border: none; border-radius: 8px; font-family: var(--font-sans); font-size: 1rem; font-weight: 600; cursor: pointer; }
+        #my-insights-list, #my-achievements-list { list-style: none; font-size: 0.9rem; max-height: 200px; overflow-y: auto; }
+        #my-insights-list li { margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px dashed var(--subtle-border); cursor: pointer; }
+        #my-insights-list li:last-child { border-bottom: none; }
+        #my-achievements-list li { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.5rem; }
+        #my-achievements-list li.unlocked { opacity: 1; }
+        #my-achievements-list li.locked { opacity: 0.4; }
+        #highlighter-menu { position: absolute; background-color: var(--subtle-bg); border: 1px solid var(--subtle-border); border-radius: 8px; padding: 0.5rem; display: none; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        #highlighter-menu button { background: none; border: none; padding: 0.5rem; cursor: pointer; color: var(--text-color); }
+        #achievement-toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background-color: #2c2c2e; color: white; padding: 1rem 1.5rem; border-radius: 12px; font-family: var(--font-sans); text-align: center; transition: bottom 0.5s ease-in-out; z-index: 1001; }
+        #achievement-toast.show { bottom: 2rem; }
+    </style>
+</head>
+<body>
+
+    <div class="progress-bar" id="progress-bar"></div>
+
+    <div class="container">
+        <header class="app-header">
+            <div class="header-left">
+                <button class="icon-button" id="nav-toggle" title="Съдържание">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 4H21V6H3V4ZM3 11H21V13H3V11ZM3 18H21V20H3V18Z"></path></svg>
+                </button>
+                <h1 id="app-title">Профилът не лъже</h1>
+            </div>
+            <div class="header-right">
+                <button class="icon-button" id="settings-toggle" title="Настройки">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9.98438 1.99219L11.9844 5.35938L15.9844 5.79688L13.2188 8.78125L13.9844 12.8906L9.98438 10.7344L5.98438 12.8906L6.75 8.78125L3.98438 5.79688L7.98438 5.35938L9.98438 1.99219ZM9.98438 14C10.8129 14 11.4844 13.3284 11.4844 12.5C11.4844 11.6716 10.8129 11 9.98438 11C9.15594 11 8.48438 11.6716 8.48438 12.5C8.48438 13.3284 9.15594 14 9.98438 14ZM9.10938 16.4844C7.45312 16.8594 6.125 18.0938 5.65625 19.7031L6.54688 20.0781C6.92188 18.7969 7.85938 17.8594 8.98438 17.5156L9.10938 16.4844ZM10.8594 16.4844L10.9844 17.5156C12.1094 17.8594 13.0469 18.7969 13.4219 20.0781L14.3125 19.7031C13.8438 18.0938 12.5156 16.8594 10.8594 16.4844Z"></path></svg>
+                </button>
+            </div>
+        </header>
+        <main id="main-content"></main>
+    </div>
+    
+    <div class="nav-panel" id="nav-panel">
+        <h3>Съдържание</h3>
+        <ul class="nav-list" id="nav-list-container"></ul>
+    </div>
+    <div class="settings-panel" id="settings-panel">
+        <h3>Настройки</h3>
+        <div class="setting-group">
+            <label>Цветова тема</label>
+            <div class="theme-controls">
+                <button id="light" class="theme-dot" title="Светла"></button>
+                <button id="dark" class="theme-dot" title="Тъмна"></button>
+                <button id="sepia" class="theme-dot" title="Сепия"></button>
+            </div>
+        </div>
+        <div class="setting-group">
+            <label>Размер на шрифта</label>
+            <div class="font-size-controls">
+                <button id="font-decrease" title="Намали шрифта">A-</button>
+                <button id="font-increase" title="Увеличи шрифта">A+</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="highlighter-menu">
+        <button id="highlight-btn" title="Подчертай">🎨</button>
+        <button id="share-btn" title="Сподели като картинка">🖼️</button>
+    </div>
+
+    <div id="achievement-toast">
+        <strong id="achievement-title"></strong>
+        <p id="achievement-desc"></p>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const bookData = {
+            "bookMeta": { "title": "Профилът не лъже", "author": "Вашият екип" },
+            "parts": [
+                {
+                    "partNumber": 5, "partTitle": "ОГЛЕДАЛОТО",
+                    "chapters": [
+                        {
+                            "chapterId": "ch13", "chapterTitle": "Вашият дигитален одит",
+                            "epigraph": { "text": "Неосъзнатият живот не си струва да се живее.", "source": "Сократ" },
+                            "contentBlocks": [
+                                { "type": "paragraph", "content": "Дотук се упражнявахме да бъдем дигитални психолози, наблюдавайки света около нас. Анализирахме профилите на приятели, познати и инфлуенсъри. Научихме се да разчитаме скритите сигнали, да разпознаваме архетипи и да разбираме психологическите двигатели зад всеки лайк и коментар. Истинската работа започва сега." },
+                                { "type": "paragraph", "content": "Този процес може да бъде некомфортен. Може да разкрие неща за нас, които не сме осъзнавали или които сме предпочитали да игнорираме. Но той е абсолютно необходим. Отделете си един час и бъдете брутално честни със себе си." },
+                                { "type": "heading", "level": 3, "content": "Стъпка 1: Дефиниране на мотивацията" },
+                                { "type": "paragraph", "content": "Преди да анализирате *какво* публикувате, трябва да разберете *защо* го правите." },
+                                { "type": "interactiveExercise", "exerciseId": "ex13_1", "title": "Упражнение: Разкодиране на мотивацията", "instructions": "Прегледайте последните си 10 публикации и запишете какво сте се надявали да постигнете с всяка. Отговорите ви се запазват автоматично.", "fields": [{ "fieldId": "motivation_text", "fieldType": "textarea", "placeholder": "Моите мисли и мотивации бяха..." }] }
+                            ]
+                        },
+                        {
+                            "chapterId": "ch14", "chapterTitle": "Несъзнателните модели",
+                            "epigraph": { "text": "Докато не направиш несъзнателното съзнателно, то ще управлява живота ти и ти ще го наричаш съдба.", "source": "Карл Юнг" },
+                            "contentBlocks": [
+                                { "type": "paragraph", "content": "Дигиталният одит ви даде моментна снимка. Но истинската сила се крие в разпознаването на *моделите*, които се повтарят във времето – циклите, в които попадаме отново и отново, често без дори да го осъзнаваме." }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
+        
+        const App = {
+            state: {
+                theme: 'light', fontSize: 18, currentView: 'dashboard', currentChapterId: 'ch13',
+                highlights: [], exerciseAnswers: {}, unlockedAchievements: []
+            },
+            
+            init() {
+                this.cacheDOM();
+                this.loadState();
+                this.renderNav();
+                this.bindEvents();
+                this.renderView(this.state.currentView, this.state.currentChapterId);
+            },
+            
+            cacheDOM() {
+                this.dom = {
+                    body: document.body,
+                    mainContent: document.getElementById('main-content'),
+                    navPanel: document.getElementById('nav-panel'),
+                    settingsPanel: document.getElementById('settings-panel'),
+                    navListContainer: document.getElementById('nav-list-container'),
+                    appTitle: document.getElementById('app-title'),
+                    progressBar: document.getElementById('progress-bar'),
+                    highlighterMenu: document.getElementById('highlighter-menu')
+                };
+            },
+            
+            saveState() { localStorage.setItem('bookAppState', JSON.stringify(this.state)); },
+            loadState() {
+                const savedState = JSON.parse(localStorage.getItem('bookAppState'));
+                if (savedState) this.state = { ...this.state, ...savedState };
+                this.applySettings();
+            },
+
+            applySettings() {
+                // Theme
+                this.dom.body.classList.remove('dark-mode', 'sepia-mode');
+                if (this.state.theme !== 'light') this.dom.body.classList.add(`${this.state.theme}-mode`);
+                document.querySelectorAll('.theme-dot').forEach(btn => {
+                    btn.classList.toggle('active', btn.id === this.state.theme);
+                });
+                // Font size
+                this.dom.mainContent.style.fontSize = `${this.state.fontSize}px`;
+            },
+            
+            bindEvents() {
+                document.getElementById('nav-toggle').addEventListener('click', () => this.dom.navPanel.classList.toggle('open'));
+                document.getElementById('settings-toggle').addEventListener('click', () => this.dom.settingsPanel.classList.toggle('open'));
+                this.dom.appTitle.addEventListener('click', () => this.renderView('dashboard'));
+                
+                document.querySelectorAll('.theme-dot').forEach(btn => btn.addEventListener('click', e => {
+                    this.state.theme = e.target.id;
+                    this.applySettings();
+                    this.saveState();
+                }));
+                
+                document.getElementById('font-increase').addEventListener('click', () => this.updateFontSize(1));
+                document.getElementById('font-decrease').addEventListener('click', () => this.updateFontSize(-1));
+
+                this.dom.navListContainer.addEventListener('click', e => {
+                    if (e.target.matches('.chapter-link')) {
+                        e.preventDefault();
+                        this.renderView('chapter', e.target.dataset.chapterId);
+                        this.dom.navPanel.classList.remove('open');
+                    }
+                });
+                
+                this.dom.mainContent.addEventListener('click', e => {
+                    if (e.target.matches('#continue-reading-btn')) this.renderView('chapter', this.state.currentChapterId);
+                });
+
+                this.dom.mainContent.addEventListener('input', e => {
+                    if (e.target.matches('textarea[data-exercise-id]')) {
+                        const id = e.target.dataset.exerciseId;
+                        this.state.exerciseAnswers[id] = e.target.value;
+                        this.checkAchievements();
+                        this.saveState();
+                    }
+                });
+
+                window.addEventListener('scroll', () => this.updateProgress());
+                
+                // Highlighter events
+                this.dom.mainContent.addEventListener('mouseup', e => this.handleTextSelection(e));
+                document.addEventListener('mousedown', e => {
+                    if (!this.dom.highlighterMenu.contains(e.target)) this.dom.highlighterMenu.style.display = 'none';
+                });
+                document.getElementById('highlight-btn').addEventListener('click', () => this.addHighlight());
+            },
+
+            updateFontSize(change) {
+                const newSize = this.state.fontSize + change;
+                if (newSize >= 14 && newSize <= 28) {
+                    this.state.fontSize = newSize;
+                    this.applySettings();
+                    this.saveState();
+                }
+            },
+            
+            renderView(view, id = null) {
+                this.state.currentView = view;
+                if (id) this.state.currentChapterId = id;
+                window.scrollTo(0, 0);
+
+                if (view === 'dashboard') {
+                    this.dom.mainContent.innerHTML = this.getDashboardHTML();
+                    this.dom.appTitle.textContent = "Табло за управление";
+                } else {
+                    this.dom.mainContent.innerHTML = this.getChapterHTML(id);
+                    this.dom.appTitle.textContent = "Профилът не лъже";
+                    this.applyHighlights(id);
+                }
+                this.saveState();
+            },
+
+            getChapterHTML(chapterId) {
+                const part = bookData.parts.find(p => p.chapters.some(c => c.chapterId === chapterId));
+                if (!part) return `<p>Главата не е намерена.</p>`;
+                const chapter = part.chapters.find(c => c.chapterId === chapterId);
+
+                let html = `<div class="content-view" id="content-view-area"><h2>${chapter.chapterTitle}</h2>`;
+                if(chapter.epigraph) html += `<blockquote class="epigraph"><p>${chapter.epigraph.text}</p><cite>– ${chapter.epigraph.source}</cite></blockquote>`;
+                
+                chapter.contentBlocks.forEach(block => {
+                    switch(block.type) {
+                        case 'paragraph': html += `<p>${block.content.replace(/\*(.*?)\*/g, '<em>$1</em>')}</p>`; break;
+                        case 'heading': html += `<h${block.level}>${block.content}</h${block.level}>`; break;
+                        case 'interactiveExercise':
+                            html += `
+                            <div class="interactive-exercise">
+                                <h4 class="exercise-title">${block.title}</h4>
+                                <p class="instructions">${block.instructions}</p>
+                                <textarea data-exercise-id="${block.exerciseId}" placeholder="${block.fields[0].placeholder}">${this.state.exerciseAnswers[block.exerciseId] || ''}</textarea>
+                            </div>`;
+                            break;
+                    }
+                });
+                return html + '</div>';
+            },
+
+            getDashboardHTML() {
+                const continueChapterTitle = bookData.parts[0].chapters.find(c => c.chapterId === this.state.currentChapterId)?.chapterTitle || 'Начало';
+                const highlightsHtml = this.state.highlights.length > 0 ?
+                    this.state.highlights.map(h => `<li data-chapter-id="${h.chapterId}">"${h.text}"</li>`).join('') :
+                    `<li>Все още нямате подчертани прозрения.</li>`;
+
+                const achievements = [ {id: 'ach_01', title: 'Първа стъпка' }];
+                const achievementsHtml = achievements.map(a => 
+                    `<li class="${this.state.unlockedAchievements.includes(a.id) ? 'unlocked' : 'locked'}">
+                        <span>🏆</span> ${a.title}
+                    </li>`
+                ).join('');
+
+                return `
+                <div class="dashboard-view">
+                    <div class="dashboard-card" style="grid-column: 1 / -1;">
+                        <button id="continue-reading-btn">Продължи с четенето (${continueChapterTitle})</button>
+                    </div>
+                    <div class="dashboard-card"><h3>Моите прозрения</h3><ul id="my-insights-list">${highlightsHtml}</ul></div>
+                    <div class="dashboard-card"><h3>Постижения</h3><ul id="my-achievements-list">${achievementsHtml}</ul></div>
+                </div>`;
+            },
+
+            renderNav() {
+                let navHtml = '';
+                bookData.parts.forEach(part => {
+                    navHtml += `<li class="part-title">${part.partTitle}</li>`;
+                    part.chapters.forEach(chapter => {
+                        navHtml += `<li><a href="#" class="chapter-link" data-chapter-id="${chapter.chapterId}">${chapter.chapterTitle}</a></li>`;
+                    });
+                });
+                this.dom.navListContainer.innerHTML = navHtml;
+            },
+            
+            updateProgress() {
+                if (this.state.currentView !== 'chapter') {
+                    this.dom.progressBar.style.width = '0%';
+                    return;
+                }
+                const contentArea = document.getElementById('content-view-area');
+                if (!contentArea) return;
+                const scrollableHeight = contentArea.scrollHeight - window.innerHeight;
+                const scrollTop = window.scrollY;
+                const progress = scrollableHeight > 0 ? (scrollTop / scrollableHeight) * 100 : 0;
+                this.dom.progressBar.style.width = `${Math.min(progress, 100)}%`;
+            },
+            
+            handleTextSelection(e) {
+                const selection = window.getSelection();
+                if (selection.toString().length > 5) {
+                    this.currentSelection = selection.getRangeAt(0);
+                    const rect = this.currentSelection.getBoundingClientRect();
+                    this.dom.highlighterMenu.style.left = `${e.clientX}px`;
+                    this.dom.highlighterMenu.style.top = `${e.clientY - 50}px`;
+                    this.dom.highlighterMenu.style.display = 'block';
+                } else {
+                    this.dom.highlighterMenu.style.display = 'none';
+                }
+            },
+
+            addHighlight() {
+                if (!this.currentSelection) return;
+                const selectionText = this.currentSelection.toString().trim();
+                const highlightId = `hl_${Date.now()}`;
+                
+                // Запазваме информацията
+                this.state.highlights.push({
+                    id: highlightId,
+                    text: selectionText,
+                    chapterId: this.state.currentChapterId
+                });
+                this.saveState();
+
+                // Обвиваме визуално
+                const span = document.createElement('span');
+                span.className = 'highlight';
+                span.id = highlightId;
+                this.currentSelection.surroundContents(span);
+                
+                window.getSelection().removeAllRanges();
+                this.dom.highlighterMenu.style.display = 'none';
+            },
+
+            applyHighlights(chapterId) {
+                this.state.highlights
+                    .filter(h => h.chapterId === chapterId)
+                    .forEach(h => {
+                        const content = this.dom.mainContent.innerHTML;
+                        const highlightedContent = content.replace(h.text, `<span class="highlight" id="${h.id}">${h.text}</span>`);
+                        if (content !== highlightedContent) {
+                            this.dom.mainContent.innerHTML = highlightedContent;
+                        }
+                    });
+            },
+
+            checkAchievements() {
+                if (Object.keys(this.state.exerciseAnswers).length > 0 && !this.state.unlockedAchievements.includes('ach_01')) {
+                    this.state.unlockedAchievements.push('ach_01');
+                    this.showAchievementToast('Първа стъпка!', 'Попълнихте първото си упражнение.');
+                }
+            },
+            
+            showAchievementToast(title, desc) {
+                const toast = document.getElementById('achievement-toast');
+                document.getElementById('achievement-title').textContent = title;
+                document.getElementById('achievement-desc').textContent = desc;
+                toast.classList.add('show');
+                setTimeout(() => { toast.classList.remove('show'); }, 4000);
+            }
+        };
+
+        App.init();
+    });
+    </script>
+</body>
+</html>

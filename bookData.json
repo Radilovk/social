@@ -1,4 +1,3 @@
-const bookData =
 {
   "bookMeta": {
     "title": "Профилът не лъже",
@@ -2811,4 +2810,4 @@ const bookData =
       ]
     }
   ]
-};
+}

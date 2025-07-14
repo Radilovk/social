@@ -1,0 +1,9 @@
+{
+  "name": "social-book",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "devDependencies": {
+    "jsdom": "^22.0.0"
+  }
+}

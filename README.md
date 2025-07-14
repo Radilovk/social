@@ -40,3 +40,16 @@ social/
 └── README.md
 ```
 
+## Скрипт за конвертиране към JSON
+
+За да преобразувате `book.txt` в структуриран JSON файл, използвайте
+скрипта `tools/convert_to_json.py`.
+
+Пример за изпълнение:
+
+```bash
+python3 tools/convert_to_json.py
+```
+
+След успешното стартиране ще се създаде файл `bookData.json` в основната папка.
+

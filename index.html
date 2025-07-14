@@ -70,6 +70,8 @@
         .dashboard-card { background-color: var(--subtle-bg); border-radius: 12px; padding: 1.5rem; }
         .dashboard-card h3 { font-family: var(--font-sans); font-size: 1.1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--subtle-border); padding-bottom: 0.5rem;}
         #continue-reading-btn { display: block; width: 100%; padding: 1rem; background-color: var(--accent-color); color: white; border: none; border-radius: 8px; font-family: var(--font-sans); font-size: 1rem; font-weight: 600; cursor: pointer; }
+        .chapter-nav { display: flex; justify-content: space-between; gap: 1rem; margin: 2rem 0; }
+        .chapter-nav button { flex: 1; padding: 1rem; background-color: var(--accent-color); color: white; border: none; border-radius: 8px; font-family: var(--font-sans); font-size: 1rem; font-weight: 600; cursor: pointer; }
         #my-insights-list, #my-achievements-list { list-style: none; font-size: 0.9rem; max-height: 200px; overflow-y: auto; }
         #my-insights-list li { margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px dashed var(--subtle-border); cursor: pointer; }
         #my-insights-list li:last-child { border-bottom: none; }
@@ -145,6 +147,8 @@
                 theme: 'light', fontSize: 18, currentView: 'dashboard', currentChapterId: 'ch13',
                 highlights: [], exerciseAnswers: {}, unlockedAchievements: []
             },
+            touchStartX: 0,
+            touchEndX: 0,
             
             init() {
                 this.cacheDOM();
@@ -228,6 +232,9 @@
                     if (!this.dom.highlighterMenu.contains(e.target)) this.dom.highlighterMenu.style.display = 'none';
                 });
                 document.getElementById('highlight-btn').addEventListener('click', () => this.addHighlight());
+
+                this.dom.mainContent.addEventListener('touchstart', e => { this.touchStartX = e.changedTouches[0].clientX; });
+                this.dom.mainContent.addEventListener('touchend', e => { this.touchEndX = e.changedTouches[0].clientX; this.handleSwipe(); });
             },
 
             updateFontSize(change) {
@@ -236,6 +243,42 @@
                     this.state.fontSize = newSize;
                     this.applySettings();
                     this.saveState();
+                }
+            },
+
+            getAdjacentChapterIds(id) {
+                const ids = [];
+                bookData.parts.forEach(p => p.chapters.forEach(c => ids.push(c.chapterId)));
+                const idx = ids.indexOf(id);
+                return {
+                    prevId: idx > 0 ? ids[idx - 1] : null,
+                    nextId: idx >= 0 && idx < ids.length - 1 ? ids[idx + 1] : null
+                };
+            },
+
+            nextChapter() {
+                const { nextId } = this.getAdjacentChapterIds(this.state.currentChapterId);
+                if (nextId) this.renderView('chapter', nextId);
+            },
+
+            prevChapter() {
+                const { prevId } = this.getAdjacentChapterIds(this.state.currentChapterId);
+                if (prevId) this.renderView('chapter', prevId);
+            },
+
+            updateChapterNav() {
+                const ids = this.getAdjacentChapterIds(this.state.currentChapterId);
+                const prevBtn = document.getElementById('prev-chapter-btn');
+                const nextBtn = document.getElementById('next-chapter-btn');
+                if (prevBtn) prevBtn.style.display = ids.prevId ? 'block' : 'none';
+                if (nextBtn) nextBtn.style.display = ids.nextId ? 'block' : 'none';
+            },
+
+            handleSwipe() {
+                if (this.state.currentView !== 'chapter') return;
+                const diff = this.touchStartX - this.touchEndX;
+                if (Math.abs(diff) > 50) {
+                    if (diff > 0) this.nextChapter(); else this.prevChapter();
                 }
             },
             
@@ -251,6 +294,11 @@
                     this.dom.mainContent.innerHTML = this.getChapterHTML(id);
                     this.dom.appTitle.textContent = "Профилът не лъже";
                     this.applyHighlights(id);
+                    this.updateChapterNav();
+                    const prevBtn = document.getElementById('prev-chapter-btn');
+                    const nextBtn = document.getElementById('next-chapter-btn');
+                    if (prevBtn) prevBtn.addEventListener('click', () => this.prevChapter());
+                    if (nextBtn) nextBtn.addEventListener('click', () => this.nextChapter());
                 }
                 this.saveState();
             },
@@ -282,7 +330,9 @@
                             break;
                     }
                 });
-                return html + '</div>';
+                html += '</div>';
+                html += `<div class="chapter-nav"><button id="prev-chapter-btn">Предишна</button><button id="next-chapter-btn">Следваща</button></div>`;
+                return html;
             },
 
             getDashboardHTML() {

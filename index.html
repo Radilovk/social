@@ -80,6 +80,10 @@
         #my-achievements-list li { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.5rem; }
         #my-achievements-list li.unlocked { opacity: 1; }
         #my-achievements-list li.locked { opacity: 0.4; }
+        .quiz-view { margin-top: 1.5rem; }
+        .quiz-question { margin-bottom: 1.5rem; }
+        .quiz-question p { margin-bottom: 0.5rem; font-family: var(--font-sans); font-weight: 600; }
+        .quiz-question label { display: block; margin-bottom: 0.3rem; }
         #highlighter-menu { position: absolute; background-color: var(--subtle-bg); border: 1px solid var(--subtle-border); border-radius: 8px; padding: 0.5rem; display: none; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         #highlighter-menu button { background: none; border: none; padding: 0.5rem; cursor: pointer; color: var(--text-color); }
         #achievement-toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background-color: #2c2c2e; color: white; padding: 1rem 1.5rem; border-radius: 12px; font-family: var(--font-sans); text-align: center; transition: bottom 0.5s ease-in-out; z-index: 1001; }
@@ -110,7 +114,10 @@
     </div>
     
     <div class="nav-panel" id="nav-panel">
-        <h3>Съдържание</h3>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3>Съдържание</h3>
+            <button class="icon-button" id="nav-close" title="Затвори" aria-label="Затвори">&#10005;</button>
+        </div>
         <ul class="nav-list" id="nav-list-container"></ul>
     </div>
     <div class="settings-panel" id="settings-panel">
@@ -146,13 +153,15 @@
     </div>
 
     <script src="bookData.js"></script>
+    <script src="quizData.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', () => {
         
         const App = {
             state: {
                 theme: 'light', fontSize: 18, currentView: 'dashboard', currentChapterId: 'ch01',
-                highlights: [], exerciseAnswers: {}, unlockedAchievements: []
+                highlights: [], exerciseAnswers: {}, unlockedAchievements: [],
+                chaptersRead: [], quizResults: {}, currentQuizId: null
             },
             touchStartX: 0,
             touchEndX: 0,
@@ -198,6 +207,14 @@
             
             bindEvents() {
                 document.getElementById('nav-toggle').addEventListener('click', () => this.dom.navPanel.classList.toggle('open'));
+                document.getElementById('nav-close').addEventListener('click', () => this.dom.navPanel.classList.remove('open'));
+                document.addEventListener('click', e => {
+                    if (this.dom.navPanel.classList.contains('open') &&
+                        !this.dom.navPanel.contains(e.target) &&
+                        e.target.id !== 'nav-toggle') {
+                        this.dom.navPanel.classList.remove('open');
+                    }
+                });
                 document.getElementById('settings-toggle').addEventListener('click', () => this.dom.settingsPanel.classList.toggle('open'));
                 document.getElementById('settings-close').addEventListener('click', () => this.dom.settingsPanel.classList.remove('open'));
                 this.dom.appTitle.addEventListener('click', () => this.renderView('dashboard'));
@@ -231,6 +248,15 @@
                         setTimeout(() => {
                             document.getElementById(hl)?.scrollIntoView({behavior:'smooth'});
                         }, 50);
+                    }
+                });
+
+                this.dom.mainContent.addEventListener('click', e => {
+                    if (e.target.matches('.quiz-btn')) {
+                        this.renderView('quiz', e.target.dataset.testId);
+                    }
+                    if (e.target.matches('#submit-quiz')) {
+                        this.submitQuiz();
                     }
                 });
 
@@ -308,10 +334,14 @@
 
                 if (view === 'dashboard') {
                     this.dom.mainContent.innerHTML = this.getDashboardHTML();
-                    this.dom.appTitle.textContent = "Табло за управление";
+                    this.dom.appTitle.textContent = "Моето табло";
+                } else if (view === 'quiz') {
+                    this.dom.mainContent.innerHTML = this.getQuizHTML(id);
+                    this.dom.appTitle.textContent = "Моето табло";
                 } else {
                     this.dom.mainContent.innerHTML = this.getChapterHTML(id);
                     this.dom.appTitle.textContent = "Профилът не лъже";
+                    if (!this.state.chaptersRead.includes(id)) this.state.chaptersRead.push(id);
                     this.applyHighlights(id);
                     this.updateChapterNav();
                     const prevBtn = document.getElementById('prev-chapter-btn');
@@ -361,11 +391,16 @@
                     `<li>Все още нямате подчертани прозрения.</li>`;
 
                 const achievements = [ {id: 'ach_01', title: 'Първа стъпка' }];
-                const achievementsHtml = achievements.map(a => 
+                const achievementsHtml = achievements.map(a =>
                     `<li class="${this.state.unlockedAchievements.includes(a.id) ? 'unlocked' : 'locked'}">
                         <span>🏆</span> ${a.title}
                     </li>`
                 ).join('');
+
+                const testsHtml = quizData.map(t => {
+                    const unlocked = t.requiredChapters.every(ch => this.state.chaptersRead.includes(ch));
+                    return `<li><button class="quiz-btn" data-test-id="${t.id}" ${unlocked ? '' : 'disabled'}>${t.title}</button></li>`;
+                }).join('');
 
                 return `
                 <div class="dashboard-view">
@@ -374,7 +409,33 @@
                     </div>
                     <div class="dashboard-card"><h3>Моите прозрения</h3><ul id="my-insights-list">${highlightsHtml}</ul></div>
                     <div class="dashboard-card"><h3>Постижения</h3><ul id="my-achievements-list">${achievementsHtml}</ul></div>
+                <div class="dashboard-card"><h3>Тестове</h3><ul id="tests-list">${testsHtml}</ul></div>
                 </div>`;
+            },
+
+            getQuizHTML(testId) {
+                const quiz = quizData.find(q => q.id === testId);
+                if (!quiz) return '<p>Тестът не е намерен.</p>';
+                this.state.currentQuizId = testId;
+                const qHtml = quiz.questions.map((q, idx) => `
+                    <div class="quiz-question">
+                        <p>${q.text}</p>
+                        ${q.options.map((opt, oi) => `<label><input type="radio" name="q${idx}" value="${oi}"> ${opt}</label>`).join('')}
+                    </div>`).join('');
+                return `<div class="quiz-view"><h2>${quiz.title}</h2>${qHtml}<button id="submit-quiz">Провери</button></div>`;
+            },
+
+            submitQuiz() {
+                const quiz = quizData.find(q => q.id === this.state.currentQuizId);
+                if (!quiz) return;
+                let correct = 0;
+                quiz.questions.forEach((q, idx) => {
+                    const sel = document.querySelector(`input[name='q${idx}']:checked`);
+                    if (sel && parseInt(sel.value) === q.correct) correct++;
+                });
+                this.state.quizResults[quiz.id] = correct;
+                alert(`Резултат: ${correct} / ${quiz.questions.length}`);
+                this.renderView('dashboard');
             },
 
             renderNav() {

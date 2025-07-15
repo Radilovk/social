@@ -73,7 +73,6 @@
     </div>
 
     <script src="bookData.js"></script>
-    <script src="quizData.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', () => {
         
@@ -81,7 +80,7 @@
             state: {
                 theme: 'light', fontSize: 18, currentView: 'dashboard', currentChapterId: 'ch01',
                 highlights: [], exerciseAnswers: {}, unlockedAchievements: [],
-                chaptersRead: [], quizResults: {}, currentQuizId: null, scrollPositions: {}
+                chaptersRead: [], scrollPositions: {}
             },
             
             init() {
@@ -172,20 +171,7 @@
                     }
                 });
 
-                this.dom.mainContent.addEventListener('click', e => {
-                    if (e.target.matches('.quiz-btn')) {
-                        const unlocked = e.target.dataset.unlocked === 'true';
-                        const info = e.target.nextElementSibling;
-                        if (unlocked) {
-                            this.renderView('quiz', e.target.dataset.testId);
-                        } else if (info) {
-                            info.style.display = info.style.display === 'none' ? 'block' : 'none';
-                        }
-                    }
-                    if (e.target.matches('#submit-quiz')) {
-                        this.submitQuiz();
-                    }
-                });
+
 
                 this.dom.mainContent.addEventListener('input', e => {
                     if (e.target.matches('textarea[data-exercise-id]')) {
@@ -201,6 +187,7 @@
                 // Highlighter events
                 this.dom.mainContent.addEventListener('mouseup', e => this.handleTextSelection(e));
                 this.dom.mainContent.addEventListener('touchend', e => this.handleTextSelection(e));
+                document.addEventListener('selectionchange', () => this.handleTextSelection());
                 document.addEventListener('mousedown', e => {
                     if (!this.dom.highlighterMenu.contains(e.target)) this.dom.highlighterMenu.style.display = 'none';
                 });
@@ -266,9 +253,6 @@
                 if (view === 'dashboard') {
                     this.dom.mainContent.innerHTML = this.getDashboardHTML();
                     this.dom.appTitle.textContent = "Моето меню";
-                } else if (view === 'quiz') {
-                    this.dom.mainContent.innerHTML = this.getQuizHTML(id);
-                    this.dom.appTitle.textContent = "Моето меню";
                 } else {
                     this.dom.mainContent.innerHTML = this.getChapterHTML(id);
                     this.dom.appTitle.textContent = "Моето меню";
@@ -332,14 +316,6 @@
                     </li>`
                 ).join('');
 
-                const testsHtml = quizData.map(t => {
-                    const unlocked = t.requiredChapters.every(ch => this.state.chaptersRead.includes(ch));
-                    return `<li>
-                        <button class="quiz-btn" data-test-id="${t.id}" data-unlocked="${unlocked}">${t.title}</button>
-                        <div class="quiz-info"><p>${t.description}</p><p>Отваря се след глави: ${t.requiredChapters.join(', ')}</p></div>
-                    </li>`;
-                }).join('');
-
                 return `
                 <div class="dashboard-view">
                     <div class="dashboard-card" style="grid-column: 1 / -1;">
@@ -348,33 +324,7 @@
                     </div>
                     <div class="dashboard-card"><h3>Моите прозрения</h3><ul id="my-insights-list">${highlightsHtml}</ul></div>
                     <div class="dashboard-card"><h3>Постижения</h3><ul id="my-achievements-list">${achievementsHtml}</ul></div>
-                <div class="dashboard-card"><h3>Тестове</h3><ul id="tests-list">${testsHtml}</ul></div>
                 </div>`;
-            },
-
-            getQuizHTML(testId) {
-                const quiz = quizData.find(q => q.id === testId);
-                if (!quiz) return '<p>Тестът не е намерен.</p>';
-                this.state.currentQuizId = testId;
-                const qHtml = quiz.questions.map((q, idx) => `
-                    <div class="quiz-question">
-                        <p>${q.text}</p>
-                        ${q.options.map((opt, oi) => `<label><input type="radio" name="q${idx}" value="${oi}"> ${opt}</label>`).join('')}
-                    </div>`).join('');
-                return `<div class="quiz-view"><h2>${quiz.title}</h2>${qHtml}<button id="submit-quiz">Провери</button></div>`;
-            },
-
-            submitQuiz() {
-                const quiz = quizData.find(q => q.id === this.state.currentQuizId);
-                if (!quiz) return;
-                let correct = 0;
-                quiz.questions.forEach((q, idx) => {
-                    const sel = document.querySelector(`input[name='q${idx}']:checked`);
-                    if (sel && parseInt(sel.value) === q.correct) correct++;
-                });
-                this.state.quizResults[quiz.id] = correct;
-                alert(`Резултат: ${correct} / ${quiz.questions.length}`);
-                this.renderView('dashboard');
             },
 
             renderNav() {
@@ -403,17 +353,18 @@
             
             handleTextSelection(e) {
                 const selection = window.getSelection();
-                if (selection.toString().length > 5) {
+                if (selection && selection.toString().length > 5) {
                     this.currentSelection = selection.getRangeAt(0);
                     const rect = this.currentSelection.getBoundingClientRect();
-                    let clientX = rect.left, clientY = rect.top;
-                    if (e.changedTouches && e.changedTouches[0]) {
+                    let clientX = rect.left + rect.width / 2;
+                    let clientY = rect.top;
+                    if (e && e.changedTouches && e.changedTouches[0]) {
                         clientX = e.changedTouches[0].clientX;
                         clientY = e.changedTouches[0].clientY;
-                    } else if (e.touches && e.touches[0]) {
+                    } else if (e && e.touches && e.touches[0]) {
                         clientX = e.touches[0].clientX;
                         clientY = e.touches[0].clientY;
-                    } else if (e.clientX !== undefined) {
+                    } else if (e && e.clientX !== undefined) {
                         clientX = e.clientX;
                         clientY = e.clientY;
                     }
@@ -458,23 +409,26 @@
                 const text = this.currentSelection.toString().trim();
                 if (navigator.share) {
                     navigator.share({ text }).catch(() => {});
-                    this.dom.highlighterMenu.style.display = "none";
-                    return;
+                } else if (navigator.clipboard) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        alert('Текстът е копиран');
+                    }).catch(() => {});
+                } else {
+                    const canvas = document.createElement("canvas");
+                    canvas.width = 800;
+                    canvas.height = 200;
+                    const ctx = canvas.getContext("2d");
+                    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue("--bg-color");
+                    ctx.fillRect(0,0,canvas.width,canvas.height);
+                    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue("--text-color");
+                    ctx.font = "20px Lora";
+                    ctx.fillText(text, 20, 100);
+                    const url = canvas.toDataURL("image/png");
+                    const link = document.createElement("a");
+                    link.href = url;
+                    link.download = "excerpt.png";
+                    link.click();
                 }
-                const canvas = document.createElement("canvas");
-                canvas.width = 800;
-                canvas.height = 200;
-                const ctx = canvas.getContext("2d");
-                ctx.fillStyle = getComputedStyle(document.body).getPropertyValue("--bg-color");
-                ctx.fillRect(0,0,canvas.width,canvas.height);
-                ctx.fillStyle = getComputedStyle(document.body).getPropertyValue("--text-color");
-                ctx.font = "20px Lora";
-                ctx.fillText(text, 20, 100);
-                const url = canvas.toDataURL("image/png");
-                const link = document.createElement("a");
-                link.href = url;
-                link.download = "excerpt.png";
-                link.click();
                 this.dom.highlighterMenu.style.display = "none";
             },
 

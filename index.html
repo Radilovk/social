@@ -417,8 +417,10 @@
                         clientX = e.clientX;
                         clientY = e.clientY;
                     }
-                    this.dom.highlighterMenu.style.left = `${clientX}px`;
-                    this.dom.highlighterMenu.style.top = `${clientY - 50}px`;
+                    const offsetX = window.scrollX || window.pageXOffset;
+                    const offsetY = window.scrollY || window.pageYOffset;
+                    this.dom.highlighterMenu.style.left = `${clientX + offsetX}px`;
+                    this.dom.highlighterMenu.style.top = `${clientY + offsetY - 50}px`;
                     this.dom.highlighterMenu.style.display = 'block';
                 } else {
                     this.dom.highlighterMenu.style.display = 'none';

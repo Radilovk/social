@@ -101,7 +101,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 4H21V6H3V4ZM3 11H21V13H3V11ZM3 18H21V20H3V18Z"></path></svg>
                     <span class="btn-label">Съдържание</span>
                 </button>
-                <h1 id="app-title">Профилът не лъже</h1>
+                <h1 id="app-title">Моето меню</h1>
             </div>
             <div class="header-right">
                 <button class="icon-button" id="settings-toggle" title="Настройки" aria-label="Настройки">
@@ -334,13 +334,13 @@
 
                 if (view === 'dashboard') {
                     this.dom.mainContent.innerHTML = this.getDashboardHTML();
-                    this.dom.appTitle.textContent = "Моето табло";
+                    this.dom.appTitle.textContent = "Моето меню";
                 } else if (view === 'quiz') {
                     this.dom.mainContent.innerHTML = this.getQuizHTML(id);
-                    this.dom.appTitle.textContent = "Моето табло";
+                    this.dom.appTitle.textContent = "Моето меню";
                 } else {
                     this.dom.mainContent.innerHTML = this.getChapterHTML(id);
-                    this.dom.appTitle.textContent = "Профилът не лъже";
+                    this.dom.appTitle.textContent = "Моето меню";
                     if (!this.state.chaptersRead.includes(id)) this.state.chaptersRead.push(id);
                     this.applyHighlights(id);
                     this.updateChapterNav();
@@ -406,6 +406,7 @@
                 <div class="dashboard-view">
                     <div class="dashboard-card" style="grid-column: 1 / -1;">
                         <button id="continue-reading-btn">Продължи с четенето (${continueChapterTitle})</button>
+                        <img src="cover.png" alt="Корицата" style="width:100%; margin-top:1rem; border-radius:8px;" />
                     </div>
                     <div class="dashboard-card"><h3>Моите прозрения</h3><ul id="my-insights-list">${highlightsHtml}</ul></div>
                     <div class="dashboard-card"><h3>Постижения</h3><ul id="my-achievements-list">${achievementsHtml}</ul></div>

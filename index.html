@@ -31,8 +31,10 @@
         .app-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 1.5rem; border-bottom: 1px solid var(--subtle-border); margin-bottom: 2rem; }
         .header-left, .header-right { display: flex; align-items: center; gap: 1rem; }
         .app-header h1 { font-family: var(--font-sans); font-size: 1.2rem; font-weight: 600; cursor: pointer; }
-        .icon-button { background: none; border: none; cursor: pointer; color: var(--text-color); padding: 0.5rem; display: flex; align-items: center; justify-content: center; }
+        .icon-button { background: none; border: none; cursor: pointer; color: var(--text-color); padding: 0.5rem; display: flex; align-items: center; gap: 0.4rem; font-family: var(--font-sans); font-size: 0.9rem; }
         .icon-button svg { width: 24px; height: 24px; pointer-events: none; }
+        .btn-label { display: none; }
+        @media (min-width: 600px) { .btn-label { display: inline; } }
         .settings-panel { position: fixed; top: 0; right: -320px; width: 300px; height: 100%; background-color: var(--subtle-bg); border-left: 1px solid var(--subtle-border); padding: 1.5rem; transition: right 0.3s ease-in-out; z-index: 999; }
         .settings-panel.open { right: 0; }
         .settings-panel h3, .nav-panel h3 { font-family: var(--font-sans); margin-bottom: 1.5rem; }
@@ -91,14 +93,16 @@
     <div class="container">
         <header class="app-header">
             <div class="header-left">
-                <button class="icon-button" id="nav-toggle" title="Съдържание">
+                <button class="icon-button" id="nav-toggle" title="Съдържание" aria-label="Съдържание">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 4H21V6H3V4ZM3 11H21V13H3V11ZM3 18H21V20H3V18Z"></path></svg>
+                    <span class="btn-label">Съдържание</span>
                 </button>
                 <h1 id="app-title">Профилът не лъже</h1>
             </div>
             <div class="header-right">
-                <button class="icon-button" id="settings-toggle" title="Настройки">
+                <button class="icon-button" id="settings-toggle" title="Настройки" aria-label="Настройки">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9.98438 1.99219L11.9844 5.35938L15.9844 5.79688L13.2188 8.78125L13.9844 12.8906L9.98438 10.7344L5.98438 12.8906L6.75 8.78125L3.98438 5.79688L7.98438 5.35938L9.98438 1.99219ZM9.98438 14C10.8129 14 11.4844 13.3284 11.4844 12.5C11.4844 11.6716 10.8129 11 9.98438 11C9.15594 11 8.48438 11.6716 8.48438 12.5C8.48438 13.3284 9.15594 14 9.98438 14ZM9.10938 16.4844C7.45312 16.8594 6.125 18.0938 5.65625 19.7031L6.54688 20.0781C6.92188 18.7969 7.85938 17.8594 8.98438 17.5156L9.10938 16.4844ZM10.8594 16.4844L10.9844 17.5156C12.1094 17.8594 13.0469 18.7969 13.4219 20.0781L14.3125 19.7031C13.8438 18.0938 12.5156 16.8594 10.8594 16.4844Z"></path></svg>
+                    <span class="btn-label">Настройки</span>
                 </button>
             </div>
         </header>
@@ -112,7 +116,7 @@
     <div class="settings-panel" id="settings-panel">
         <div style="display:flex; justify-content:space-between; align-items:center;">
             <h3>Настройки</h3>
-            <button class="icon-button" id="settings-close" title="Затвори">&#10005;</button>
+            <button class="icon-button" id="settings-close" title="Затвори" aria-label="Затвори">&#10005;</button>
         </div>
         <div class="setting-group">
             <label>Цветова тема</label>

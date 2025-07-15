@@ -2,6 +2,7 @@ const quizData = [
   {
     id: 'quiz01',
     title: 'Тест за глава 1',
+    description: 'Кратка проверка на ключовите понятия от първа глава.',
     requiredChapters: ['ch01'],
     questions: [
       {
@@ -19,6 +20,7 @@ const quizData = [
   {
     id: 'quiz02',
     title: 'Тест за глави 1-2',
+    description: 'Съвкупен тест върху първите две глави от книгата.',
     requiredChapters: ['ch01','ch02'],
     questions: [
       {

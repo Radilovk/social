@@ -72,6 +72,17 @@
         <p id="achievement-desc"></p>
     </div>
 
+    <div id="user-overlay" class="overlay" style="display:none;">
+        <div class="overlay-content">
+            <h3>Добре дошли!</h3>
+            <p>Въведете име, за да пазим личните ви бележки.</p>
+            <form id="user-form">
+                <input type="text" id="user-name" placeholder="Вашето име" required />
+                <button type="submit">Старт</button>
+            </form>
+        </div>
+    </div>
+
     <script src="bookData.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -82,9 +93,16 @@
                 highlights: [], exerciseAnswers: {}, unlockedAchievements: [],
                 chaptersRead: [], scrollPositions: {}
             },
-            
+            userId: null,
+
             init() {
                 this.cacheDOM();
+                if (this.loadUserId()) {
+                    this.postUserInit();
+                }
+            },
+
+            postUserInit() {
                 this.loadState();
                 this.renderNav();
                 this.bindEvents();
@@ -100,19 +118,43 @@
                     navListContainer: document.getElementById('nav-list-container'),
                     appTitle: document.getElementById('app-title'),
                     progressBar: document.getElementById('progress-bar'),
-                    highlighterMenu: document.getElementById('highlighter-menu')
+                    highlighterMenu: document.getElementById('highlighter-menu'),
+                    userOverlay: document.getElementById('user-overlay'),
+                    userForm: document.getElementById('user-form'),
+                    userNameInput: document.getElementById('user-name')
                 };
             },
-            
-            saveState() { localStorage.setItem('bookAppState', JSON.stringify(this.state)); },
+
+            storageKey() { return `bookAppState_${this.userId}`; },
+
+            saveState() { localStorage.setItem(this.storageKey(), JSON.stringify(this.state)); },
             loadState() {
-                const savedState = JSON.parse(localStorage.getItem("bookAppState"));
+                const savedState = JSON.parse(localStorage.getItem(this.storageKey()));
                 if (savedState) {
                     this.state = { ...this.state, ...savedState };
                 } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
                     this.state.theme = "dark";
                 }
                 this.applySettings();
+            },
+
+            loadUserId() {
+                this.userId = localStorage.getItem('bookAppUserId');
+                if (!this.userId) {
+                    this.dom.userOverlay.style.display = 'flex';
+                    this.dom.userForm.addEventListener('submit', e => {
+                        e.preventDefault();
+                        const name = this.dom.userNameInput.value.trim();
+                        if (name) {
+                            this.userId = name.replace(/\s+/g, '_');
+                            localStorage.setItem('bookAppUserId', this.userId);
+                            this.dom.userOverlay.style.display = 'none';
+                            this.postUserInit();
+                        }
+                    }, { once: true });
+                    return false;
+                }
+                return true;
             },
             applySettings() {
                 // Theme

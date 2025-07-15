@@ -3,14 +3,8 @@
   "version": "1.0.0",
   "description": "Това репозиторио съдържа материали за разработването на книгата **\"Виртуална психология: Какво разкрива профилът ти\"**. Текстовете са на български език и представляват работна чернова.",
   "main": "bookData.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
-    "jsdom": "^26.1.0"
-  }
+  "type": "commonjs"
 }

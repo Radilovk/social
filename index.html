@@ -81,10 +81,8 @@
             state: {
                 theme: 'light', fontSize: 18, currentView: 'dashboard', currentChapterId: 'ch01',
                 highlights: [], exerciseAnswers: {}, unlockedAchievements: [],
-                chaptersRead: [], quizResults: {}, currentQuizId: null
+                chaptersRead: [], quizResults: {}, currentQuizId: null, scrollPositions: {}
             },
-            touchStartX: 0,
-            touchEndX: 0,
             
             init() {
                 this.cacheDOM();
@@ -208,8 +206,6 @@
                 document.getElementById('highlight-btn').addEventListener('click', () => this.addHighlight());
                 document.getElementById("share-btn").addEventListener("click", () => this.shareSelection());
 
-                this.dom.mainContent.addEventListener('touchstart', e => { this.touchStartX = e.changedTouches[0].clientX; });
-                this.dom.mainContent.addEventListener('touchend', e => { this.touchEndX = e.changedTouches[0].clientX; this.handleSwipe(); });
             },
 
             updateFontSize(change) {
@@ -249,15 +245,14 @@
                 if (nextBtn) nextBtn.style.display = ids.nextId ? 'block' : 'none';
             },
 
-            handleSwipe() {
-                if (this.state.currentView !== 'chapter') return;
-                const diff = this.touchStartX - this.touchEndX;
-                if (Math.abs(diff) > 50) {
-                    if (diff > 0) this.nextChapter(); else this.prevChapter();
-                }
-            },
             
             renderView(view, id = null) {
+                if (
+                    this.state.currentView === 'chapter' &&
+                    !(view === 'chapter' && id === this.state.currentChapterId)
+                ) {
+                    this.state.scrollPositions[this.state.currentChapterId] = window.scrollY;
+                }
                 this.state.currentView = view;
                 if (id) this.state.currentChapterId = id;
                 window.scrollTo(0, 0);
@@ -280,6 +275,8 @@
                     const nextBtn = document.getElementById('next-chapter-btn');
                     if (prevBtn) prevBtn.addEventListener('click', () => this.prevChapter());
                     if (nextBtn) nextBtn.addEventListener('click', () => this.nextChapter());
+                    const pos = this.state.scrollPositions[id] || 0;
+                    setTimeout(() => window.scrollTo(0, pos), 0);
                 }
                 requestAnimationFrame(() => this.dom.mainContent.classList.add("fade-enter-active"));
                 setTimeout(() => this.dom.mainContent.classList.remove("fade-enter","fade-enter-active"), 300);

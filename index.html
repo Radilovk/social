@@ -200,7 +200,11 @@
                 
                 // Highlighter events
                 this.dom.mainContent.addEventListener('mouseup', e => this.handleTextSelection(e));
+                this.dom.mainContent.addEventListener('touchend', e => this.handleTextSelection(e));
                 document.addEventListener('mousedown', e => {
+                    if (!this.dom.highlighterMenu.contains(e.target)) this.dom.highlighterMenu.style.display = 'none';
+                });
+                document.addEventListener('touchstart', e => {
                     if (!this.dom.highlighterMenu.contains(e.target)) this.dom.highlighterMenu.style.display = 'none';
                 });
                 document.getElementById('highlight-btn').addEventListener('click', () => this.addHighlight());
@@ -402,8 +406,19 @@
                 if (selection.toString().length > 5) {
                     this.currentSelection = selection.getRangeAt(0);
                     const rect = this.currentSelection.getBoundingClientRect();
-                    this.dom.highlighterMenu.style.left = `${e.clientX}px`;
-                    this.dom.highlighterMenu.style.top = `${e.clientY - 50}px`;
+                    let clientX = rect.left, clientY = rect.top;
+                    if (e.changedTouches && e.changedTouches[0]) {
+                        clientX = e.changedTouches[0].clientX;
+                        clientY = e.changedTouches[0].clientY;
+                    } else if (e.touches && e.touches[0]) {
+                        clientX = e.touches[0].clientX;
+                        clientY = e.touches[0].clientY;
+                    } else if (e.clientX !== undefined) {
+                        clientX = e.clientX;
+                        clientY = e.clientY;
+                    }
+                    this.dom.highlighterMenu.style.left = `${clientX}px`;
+                    this.dom.highlighterMenu.style.top = `${clientY - 50}px`;
                     this.dom.highlighterMenu.style.display = 'block';
                 } else {
                     this.dom.highlighterMenu.style.display = 'none';
@@ -427,7 +442,13 @@
                 const span = document.createElement('span');
                 span.className = 'highlight';
                 span.id = highlightId;
-                this.currentSelection.surroundContents(span);
+                try {
+                    this.currentSelection.surroundContents(span);
+                } catch (err) {
+                    const frag = this.currentSelection.extractContents();
+                    span.appendChild(frag);
+                    this.currentSelection.insertNode(span);
+                }
                 
                 window.getSelection().removeAllRanges();
                 this.dom.highlighterMenu.style.display = 'none';
@@ -435,6 +456,11 @@
             shareSelection() {
                 if (!this.currentSelection) return;
                 const text = this.currentSelection.toString().trim();
+                if (navigator.share) {
+                    navigator.share({ text }).catch(() => {});
+                    this.dom.highlighterMenu.style.display = "none";
+                    return;
+                }
                 const canvas = document.createElement("canvas");
                 canvas.width = 800;
                 canvas.height = 200;

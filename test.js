@@ -3,6 +3,7 @@ const { JSDOM, VirtualConsole } = require('jsdom');
 let html = fs.readFileSync('index.html', 'utf-8');
 html = html.replace(/<link[^>]*fonts\.googleapis[^>]*>/g, '');
 html = html.replace(/<script src="bookData.js"><\/script>/, '');
+html = html.replace(/<link rel="stylesheet" href="styles.css">/, '');
 html = html.replace(/<script src="quizData.js"><\/script>/, '');
 const dataScript = fs.readFileSync('bookData.js', 'utf-8');
 const quizScript = fs.readFileSync('quizData.js', 'utf-8');
@@ -11,6 +12,7 @@ const vConsole = new VirtualConsole();
 vConsole.sendTo(console);
 const dom = new JSDOM(html, { runScripts: 'dangerously', resources: 'usable', url: 'http://localhost', pretendToBeVisual: true, virtualConsole: vConsole });
 dom.window.scrollTo = () => {};
+dom.window.matchMedia = () => ({ matches: false, addListener: () => {}, removeListener: () => {} });
 dom.window.addEventListener('load', () => {
   const navList = dom.window.document.getElementById('nav-list-container');
   const navItems = navList ? navList.querySelectorAll('li').length : 0;

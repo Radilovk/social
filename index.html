@@ -219,6 +219,17 @@
                     if (e.target.matches('#continue-reading-btn')) this.renderView('chapter', this.state.currentChapterId);
                 });
 
+                this.dom.mainContent.addEventListener('click', e => {
+                    if (e.target.matches('#my-insights-list li')) {
+                        const ch = e.target.dataset.chapterId;
+                        const hl = e.target.dataset.highlightId;
+                        this.renderView('chapter', ch);
+                        setTimeout(() => {
+                            document.getElementById(hl)?.scrollIntoView({behavior:'smooth'});
+                        }, 50);
+                    }
+                });
+
                 this.dom.mainContent.addEventListener('input', e => {
                     if (e.target.matches('textarea[data-exercise-id]')) {
                         const id = e.target.dataset.exerciseId;
@@ -342,7 +353,7 @@
             getDashboardHTML() {
                 const continueChapterTitle = bookData.parts[0].chapters.find(c => c.chapterId === this.state.currentChapterId)?.chapterTitle || 'Начало';
                 const highlightsHtml = this.state.highlights.length > 0 ?
-                    this.state.highlights.map(h => `<li data-chapter-id="${h.chapterId}">"${h.text}"</li>`).join('') :
+                    this.state.highlights.map(h => `<li data-chapter-id="${h.chapterId}" data-highlight-id="${h.id}">"${h.text}"</li>`).join('') :
                     `<li>Все още нямате подчертани прозрения.</li>`;
 
                 const achievements = [ {id: 'ach_01', title: 'Първа стъпка' }];

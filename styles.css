@@ -53,6 +53,7 @@ body { font-family: var(--font-serif); background-color: var(--bg-color); color:
 .content-view blockquote cite { display: block; margin-top: 0.5em; font-style: normal; }
 .content-view ::selection { background-color: var(--highlight-color); }
 .content-view .highlight { background-color: var(--highlight-color); cursor: pointer; }
+.page-marker { text-align: center; margin: 2rem 0; font-family: var(--font-sans); font-size: 0.8rem; color: var(--subtle-border); }
 .interactive-exercise { background-color: var(--subtle-bg); border: 1px solid var(--subtle-border); border-radius: 12px; padding: 1.5rem; margin: 2rem 0; }
 .interactive-exercise .exercise-title { font-family: var(--font-sans); font-weight: 600; font-size: 1.2em; margin-bottom: 0.5rem; }
 .interactive-exercise .instructions { font-size: 0.9em; opacity: 0.8; margin-bottom: 1.5rem; }

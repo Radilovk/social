@@ -16,6 +16,7 @@ def parse_book(path):
     part = None
     chapter = None
     part_counter = 0
+    last_chapter_num = 0
 
     i = 0
     while i < len(lines):
@@ -40,6 +41,7 @@ def parse_book(path):
         chapter_match = CHAPTER_RE.match(line)
         if chapter_match:
             chapter_id = int(chapter_match.group(1))
+            last_chapter_num = chapter_id
             chapter_title = chapter_match.group(2).strip()
             epigraph = None
             # прескачаме празни редове след заглавието на главата
@@ -64,6 +66,26 @@ def parse_book(path):
             }
             if epigraph:
                 chapter["epigraph"] = epigraph
+            if part is None:
+                part = {
+                    "partNumber": part_counter + 1,
+                    "partTitle": "",
+                    "chapters": []
+                }
+                parts.append(part)
+            part["chapters"].append(chapter)
+            i += 1
+            continue
+
+        # Специални секции след последната глава
+        if line == "Заключение" or line == "Приложения":
+            last_chapter_num += 1
+            chapter_title = line
+            chapter = {
+                "chapterId": f"ch{last_chapter_num:02d}",
+                "chapterTitle": chapter_title,
+                "contentBlocks": []
+            }
             if part is None:
                 part = {
                     "partNumber": part_counter + 1,

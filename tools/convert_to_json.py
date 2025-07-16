@@ -8,6 +8,9 @@ OUTPUT_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'bookData
 PART_RE = re.compile(r'^ЧАСТ\s+([IVXLC]+)\s*·\s*(.+)$')
 CHAPTER_RE = re.compile(r'^Глава\s+(\d+)\.\s*(.+)$')
 
+# Приблизителен брой знаци на печатна страница
+CHARS_PER_PAGE = 1800
+
 def parse_book(path):
     with open(path, 'r', encoding='utf-8') as f:
         lines = [line.rstrip() for line in f]
@@ -17,6 +20,7 @@ def parse_book(path):
     chapter = None
     part_counter = 0
     last_chapter_num = 0
+    char_count = 0  # акумулиран брой символи за изчисляване на страници
 
     i = 0
     while i < len(lines):
@@ -44,6 +48,7 @@ def parse_book(path):
             last_chapter_num = chapter_id
             chapter_title = chapter_match.group(2).strip()
             epigraph = None
+            char_count += len(lines[i]) + 1
             # прескачаме празни редове след заглавието на главата
             j = i + 1
             while j < len(lines) and not lines[j].strip():
@@ -54,14 +59,17 @@ def parse_book(path):
                 if quote_line.startswith('„') and source_line.startswith('–'):
                     epigraph = {
                         "text": quote_line.strip('„“'),
-                        "source": source_line.lstrip('– ').strip()
+                        "source": source_line.lstrip('– ').strip(),
+                        "pageNumber": char_count // CHARS_PER_PAGE + 1
                     }
                     j += 2
             if epigraph:
+                char_count += len(quote_line) + len(source_line) + 2
                 i = j
             chapter = {
                 "chapterId": f"ch{chapter_id:02d}",
                 "chapterTitle": chapter_title,
+                "pageNumber": char_count // CHARS_PER_PAGE + 1,
                 "contentBlocks": []
             }
             if epigraph:
@@ -81,9 +89,11 @@ def parse_book(path):
         if line == "Заключение" or line == "Приложения":
             last_chapter_num += 1
             chapter_title = line
+            char_count += len(line) + 1
             chapter = {
                 "chapterId": f"ch{last_chapter_num:02d}",
                 "chapterTitle": chapter_title,
+                "pageNumber": char_count // CHARS_PER_PAGE + 1,
                 "contentBlocks": []
             }
             if part is None:
@@ -108,15 +118,19 @@ def parse_book(path):
 
         # heading detection
         if len(line.split()) <= 10 and not line.endswith(('.', '!', '?', '"', '”')):
+            char_count += len(line) + 1
             chapter["contentBlocks"].append({
                 "type": "heading",
                 "level": 3,
-                "content": line
+                "content": line,
+                "pageNumber": char_count // CHARS_PER_PAGE + 1
             })
         else:
+            char_count += len(line) + 1
             chapter["contentBlocks"].append({
                 "type": "paragraph",
-                "content": line
+                "content": line,
+                "pageNumber": char_count // CHARS_PER_PAGE + 1
             })
         i += 1
 

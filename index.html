@@ -323,10 +323,23 @@
                 if (!part) return `<p>Главата не е намерена.</p>`;
                 const chapter = part.chapters.find(c => c.chapterId === chapterId);
 
-                let html = `<div class="content-view" id="content-view-area"><h2>${chapter.chapterTitle}</h2>`;
-                if(chapter.epigraph) html += `<blockquote class="epigraph"><p>${chapter.epigraph.text}</p><cite>– ${chapter.epigraph.source}</cite></blockquote>`;
-                
+                let html = `<div class="content-view" id="content-view-area">`;
+                let lastPage = chapter.pageNumber;
+                html += `<div class="page-marker">Страница ${lastPage}</div>`;
+                html += `<h2>${chapter.chapterTitle}</h2>`;
+                if (chapter.epigraph) {
+                    if (chapter.epigraph.pageNumber && chapter.epigraph.pageNumber !== lastPage) {
+                        lastPage = chapter.epigraph.pageNumber;
+                        html += `<div class="page-marker">Страница ${lastPage}</div>`;
+                    }
+                    html += `<blockquote class="epigraph"><p>${chapter.epigraph.text}</p><cite>– ${chapter.epigraph.source}</cite></blockquote>`;
+                }
+
                 chapter.contentBlocks.forEach(block => {
+                    if (block.pageNumber && block.pageNumber !== lastPage) {
+                        lastPage = block.pageNumber;
+                        html += `<div class="page-marker">Страница ${lastPage}</div>`;
+                    }
                     switch(block.type) {
                         case 'paragraph': html += `<p>${block.content.replace(/\*(.*?)\*/g, '<em>$1</em>')}</p>`; break;
                         case 'heading': html += `<h${block.level}>${block.content}</h${block.level}>`; break;

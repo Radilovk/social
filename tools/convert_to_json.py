@@ -29,6 +29,11 @@ def parse_book(path):
             i += 1
             continue
 
+        # Пропускаме маркировките за страница, които не носят съдържание
+        if line.startswith('Страница'):
+            i += 1
+            continue
+
         part_match = PART_RE.match(line)
         if part_match:
             part_counter += 1
